@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head> 
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Fitness Analytics</title>
+
+<link rel="stylesheet" href="FitnessEngine.css"> 
+<script src="FitnessEngine.js"></script>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h1>AI Fitness Analytics</h1>
+
+<p>
+Your personalized fitness prediction system
+</p>
+
+
+
+<div class="card">
+
+
+<h2>User Information</h2>
+
+
+<label>Age</label>
+
+<input id="age" type="number" placeholder="Example: 17">
+
+
+
+<label>Height (inches)</label>
+
+<input id="height" type="number" placeholder="Example: 74">
+
+
+
+<label>Weight (pounds)</label>
+
+<input id="weight" type="number" placeholder="Example: 180">
+
+
+
+<label>Goal</label>
+
+<select id="goal">
+
+<option value="lose">
+Lose Fat
+</option>
+
+<option value="muscle">
+Build Muscle
+</option>
+
+<option value="maintain">
+Maintain
+</option>
+
+</select>
+
+
+
+
+<label>
+Workout Days Per Week
+</label>
+
+
+<input 
+id="days"
+type="number"
+min="1"
+max="7"
+placeholder="Example: 5">
+
+
+
+
+
+<label>
+Weight Goal Change (pounds)
+</label>
+
+
+<input 
+id="change"
+type="number"
+placeholder="Example: 20">
+
+
+
+
+
+<button onclick="generatePlan()">
+
+Generate AI Analysis
+
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+<div id="result" class="card">
+
+<h2>Your Report</h2>
+
+<p>
+Enter your information above.
+</p>
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+<script src="script.js"></script>
+
+
+</body>
+
+
+</html>
