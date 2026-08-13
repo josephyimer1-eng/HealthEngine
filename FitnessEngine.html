@@ -1,47 +1,719 @@
-<button id="buyPremium">
-    Unlock Premium — $5
-</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<p id="paymentStatus"></p>
+    <title>Fitness & Analytics</title>
 
-<script>
-const button = document.getElementById("buyPremium");
-const status = document.getElementById("paymentStatus");
-
-button.addEventListener("click", async () => {
-
-    button.disabled = true;
-    status.textContent = "Opening secure checkout...";
-
-    try {
-
-        const response = await fetch(
-            "http://localhost:3000/create-checkout-session",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error);
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        // Send customer to Stripe
-        window.location.href = data.url;
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+            line-height: 1.5;
+        }
 
-    } catch (error) {
+        header {
+            background: #111827;
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
 
-        console.error(error);
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
 
-        status.textContent =
-            "Something went wrong. Please try again.";
+        header p {
+            color: #cbd5e1;
+        }
 
-        button.disabled = false;
-    }
-});
-</script>
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+        }
+
+        .card h2 {
+            margin-bottom: 18px;
+            color: #111827;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .button-container {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+        button {
+            border: none;
+            border-radius: 9px;
+            padding: 13px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #calculateButton {
+            background: #111827;
+            color: white;
+            width: 100%;
+        }
+
+        #calculateButton:hover {
+            background: #374151;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 25px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .stat-description {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
+
+        .premium {
+            background: #111827;
+            color: white;
+            text-align: center;
+            padding: 35px;
+        }
+
+        .premium h2 {
+            color: white;
+        }
+
+        .premium p {
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .premium-features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .premium-features li {
+            margin: 8px 0;
+        }
+
+        #premiumButton {
+            background: white;
+            color: #111827;
+            padding: 14px 30px;
+        }
+
+        #premiumButton:hover {
+            background: #e5e7eb;
+        }
+
+        #paymentStatus {
+            margin-top: 15px;
+            color: #cbd5e1;
+        }
+
+        .goal-message {
+            padding: 18px;
+            border-radius: 10px;
+            background: #f8fafc;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #b91c1c;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        @media (max-width: 800px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Fitness & Analytics</h1>
+    <p>Track your fitness progress with data-driven analytics.</p>
+</header>
+
+
+<div class="container">
+
+    <!-- ============================= -->
+    <!-- USER INFORMATION -->
+    <!-- ============================= -->
+
+    <div class="card">
+
+        <h2>Your Information</h2>
+
+        <div class="form-grid">
+
+            <div class="input-group">
+                <label for="age">Age</label>
+                <input
+                    type="number"
+                    id="age"
+                    min="13"
+                    max="100"
+                    placeholder="Example: 25"
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="sex">Sex</label>
+
+                <select id="sex">
+
+                    <option value="">
+                        Select
+                    </option>
+
+                    <option value="male">
+                        Male
+                    </option>
+
+                    <option value="female">
+                        Female
+                    </option>
+
+                </select>
+            </div>
+
+
+            <div class="input-group">
+                <label for="height">
+                    Height (inches)
+                </label>
+
+                <input
+                    type="number"
+                    id="height"
+                    min="36"
+                    max="100"
+                    placeholder="Example: 72"
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="weight">
+                    Current Weight (lbs)
+                </label>
+
+                <input
+                    type="number"
+                    id="weight"
+                    min="50"
+                    max="700"
+                    step="0.1"
+                    placeholder="Example: 180"
+                >
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="activity">
+                    Activity Level
+                </label>
+
+                <select id="activity">
+
+                    <option value="">
+                        Select
+                    </option>
+
+                    <option value="1.2">
+                        Sedentary
+                    </option>
+
+                    <option value="1.375">
+                        Lightly Active
+                    </option>
+
+                    <option value="1.55">
+                        Moderately Active
+                    </option>
+
+                    <option value="1.725">
+                        Very Active
+                    </option>
+
+                    <option value="1.9">
+                        Extremely Active
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="workouts">
+                    Workouts Per Week
+                </label>
+
+                <select id="workouts">
+
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="goal">
+                    Goal
+                </label>
+
+                <select id="goal">
+
+                    <option value="">
+                        Select
+                    </option>
+
+                    <option value="lose">
+                        Lose Weight
+                    </option>
+
+                    <option value="maintain">
+                        Maintain Weight
+                    </option>
+
+                    <option value="gain">
+                        Gain Weight
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="targetWeight">
+                    Target Weight (lbs)
+                </label>
+
+                <input
+                    type="number"
+                    id="targetWeight"
+                    min="50"
+                    max="700"
+                    step="0.1"
+                    placeholder="Example: 170"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="button-container">
+
+            <button id="calculateButton">
+                Calculate My Fitness Stats
+            </button>
+
+            <div
+                id="errorMessage"
+                class="error"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- FITNESS DASHBOARD -->
+    <!-- ============================= -->
+
+    <div
+        id="dashboard"
+        class="hidden"
+    >
+
+        <div class="card">
+
+            <h2>Your Fitness Dashboard</h2>
+
+            <div class="stats-grid">
+
+
+                <div class="stat">
+
+                    <h3>BMI</h3>
+
+                    <div
+                        id="bmiValue"
+                        class="stat-value"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        id="bmiCategory"
+                        class="stat-description"
+                    >
+                        --
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <h3>BMR</h3>
+
+                    <div
+                        id="bmrValue"
+                        class="stat-value"
+                    >
+                        --
+                    </div>
+
+                    <div class="stat-description">
+                        calories/day
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <h3>Maintenance</h3>
+
+                    <div
+                        id="maintenanceValue"
+                        class="stat-value"
+                    >
+                        --
+                    </div>
+
+                    <div class="stat-description">
+                        calories/day
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <h3>Recommended</h3>
+
+                    <div
+                        id="calorieTarget"
+                        class="stat-value"
+                    >
+                        --
+                    </div>
+
+                    <div class="stat-description">
+                        calories/day
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- DETAILED RESULTS -->
+        <!-- ============================= -->
+
+        <div class="card">
+
+            <h2>Detailed Statistics</h2>
+
+            <div class="result-box">
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Current Weight
+                    </span>
+
+                    <span id="currentWeightResult">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Target Weight
+                    </span>
+
+                    <span id="targetWeightResult">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Weight Difference
+                    </span>
+
+                    <span id="weightDifference">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Daily Calorie Change
+                    </span>
+
+                    <span id="calorieDifference">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Estimated Weekly Change
+                    </span>
+
+                    <span id="weeklyChange">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Estimated Time to Goal
+                    </span>
+
+                    <span id="timeToGoal">
+                        --
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- GOAL ANALYSIS -->
+        <!-- ============================= -->
+
+        <div class="card">
+
+            <h2>Goal Analysis</h2>
+
+            <div
+                id="goalMessage"
+                class="goal-message"
+            >
+                Your personalized goal analysis will appear here.
+            </div>
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- PREMIUM -->
+        <!-- ============================= -->
+
+        <div class="card premium">
+
+            <h2>Unlock Fitness Analytics Premium</h2>
+
+            <p>
+                Get advanced tools for analyzing your fitness progress.
+            </p>
+
+
+            <ul class="premium-features">
+
+                <li>
+                    ✓ Advanced progress analytics
+                </li>
+
+                <li>
+                    ✓ Long-term weight projections
+                </li>
+
+                <li>
+                    ✓ Advanced calorie analysis
+                </li>
+
+                <li>
+                    ✓ Detailed fitness statistics
+                </li>
+
+                <li>
+                    ✓ Premium fitness insights
+                </li>
+
+            </ul>
+
+
+            <button id="premiumButton">
+                Unlock Premium — $5 One-Time
+            </button>
+
+
+            <p id="paymentStatus"></p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    Fitness & Analytics
+
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
