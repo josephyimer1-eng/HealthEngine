@@ -1,600 +1,325 @@
-// ============================================================
-// FITNESS & ANALYTICS
-// ============================================================
+"use strict";
 
+document.addEventListener("DOMContentLoaded", function () {
+    const $ = (id) => document.getElementById(id);
 
-// Get elements from the HTML
-const calculateButton =
-    document.getElementById("calculateButton");
+    const calculateButton = $("calculateButton");
+    const dashboard = $("dashboard");
+    const errorMessage = $("errorMessage");
+    const premiumButton = $("premiumButton");
 
-const premiumButton =
-    document.getElementById("premiumButton");
-
-
-// ============================================================
-// CALCULATE FITNESS STATISTICS
-// ============================================================
-
-calculateButton.addEventListener(
-    "click",
-    calculateFitness
-);
-
-
-function calculateFitness() {
-
-    // -----------------------------------------
-    // Get user inputs
-    // -----------------------------------------
-
-    const age =
-        Number(document.getElementById("age").value);
-
-    const sex =
-        document.getElementById("sex").value;
-
-    const height =
-        Number(document.getElementById("height").value);
-
-    const weight =
-        Number(document.getElementById("weight").value);
-
-    const activity =
-        Number(document.getElementById("activity").value);
-
-    const workouts =
-        Number(document.getElementById("workouts").value);
-
-    const goal =
-        document.getElementById("goal").value;
-
-    const targetWeight =
-        Number(
-            document.getElementById("targetWeight").value
+    // Make sure the HTML elements exist.
+    if (!calculateButton || !dashboard || !errorMessage) {
+        console.error(
+            "Calculator elements not found. Check index.html and script.js."
         );
-
-
-    const errorMessage =
-        document.getElementById("errorMessage");
-
-
-    // -----------------------------------------
-    // Validate inputs
-    // -----------------------------------------
-
-    errorMessage.textContent = "";
-
-
-    if (
-        !age ||
-        !sex ||
-        !height ||
-        !weight ||
-        !activity ||
-        !goal ||
-        !targetWeight
-    ) {
-
-        errorMessage.textContent =
-            "Please fill out all required fields.";
-
         return;
     }
 
-
-    if (age < 13 || age > 100) {
-
-        errorMessage.textContent =
-            "Please enter a valid age.";
-
-        return;
+    function showError(message) {
+        errorMessage.textContent = message;
+        dashboard.classList.add("hidden");
     }
 
-
-    if (height < 36 || height > 100) {
-
-        errorMessage.textContent =
-            "Please enter a valid height.";
-
-        return;
+    function show(id, value) {
+        const element = $(id);
+        if (element) element.textContent = value;
     }
 
-
-    if (weight < 50 || weight > 700) {
-
-        errorMessage.textContent =
-            "Please enter a valid weight.";
-
-        return;
+    function number(value) {
+        return Math.round(value).toLocaleString("en-US");
     }
 
-
-    // ========================================================
-    // BMI
-    // ========================================================
-
-    // BMI = weight(lb) / height(in)^2 × 703
-
-    const bmi =
-        (weight / (height * height)) * 703;
-
-
-    let bmiCategory;
-
-
-    if (bmi < 18.5) {
-
-        bmiCategory = "Underweight";
-
-    } else if (bmi < 25) {
-
-        bmiCategory = "Normal";
-
-    } else if (bmi < 30) {
-
-        bmiCategory = "Overweight";
-
-    } else {
-
-        bmiCategory = "Obese";
+    function weightText(value) {
+        return Number(value).toFixed(1) + " lbs";
     }
 
-
-    // ========================================================
-    // BMR
-    // ========================================================
-
-    // Mifflin-St Jeor equation
-
-    let bmr;
-
-
-    if (sex === "male") {
-
-        bmr =
-            (10 * weight * 0.453592)
-            +
-            (6.25 * height * 2.54)
-            -
-            (5 * age)
-            +
-            5;
-
-    } else {
-
-        bmr =
-            (10 * weight * 0.453592)
-            +
-            (6.25 * height * 2.54)
-            -
-            (5 * age)
-            -
-            161;
-    }
-
-
-    // ========================================================
-    // MAINTENANCE CALORIES
-    // ========================================================
-
-    let maintenance =
-        bmr * activity;
-
-
-    // Round maintenance
-    maintenance =
-        Math.round(maintenance);
-
-
-    // ========================================================
-    // CALORIE TARGET
-    // ========================================================
-
-    let calorieTarget;
-
-    let calorieDifference;
-
-
-    if (goal === "lose") {
-
-        calorieDifference = -500;
-
-        calorieTarget =
-            maintenance - 500;
-
-    } else if (goal === "gain") {
-
-        calorieDifference = 300;
-
-        calorieTarget =
-            maintenance + 300;
-
-    } else {
-
-        calorieDifference = 0;
-
-        calorieTarget =
-            maintenance;
-    }
-
-
-    // Don't allow absurdly low calculated targets
-    if (calorieTarget < 1200) {
-
-        calorieTarget = 1200;
-    }
-
-
-    calorieTarget =
-        Math.round(calorieTarget);
-
-
-    // ========================================================
-    // WEIGHT DIFFERENCE
-    // ========================================================
-
-    const weightDifference =
-        targetWeight - weight;
-
-
-    // ========================================================
-    // ESTIMATED WEEKLY CHANGE
-    // ========================================================
-
-    /*
-        Approximation:
-
-        3,500 calories ≈ 1 pound.
-
-        This is only an estimate and real-world
-        weight change is not perfectly linear.
-    */
-
-    const weeklyWeightChange =
-        (Math.abs(calorieDifference) * 7) / 3500;
-
-
-    // ========================================================
-    // TIME TO GOAL
-    // ========================================================
-
-    let timeToGoal;
-
-
-    if (Math.abs(weightDifference) < 0.1) {
-
-        timeToGoal = "Already at target";
-
-    } else if (
-        goal === "lose" &&
-        weightDifference < 0
-    ) {
-
-        const weeks =
-            Math.abs(weightDifference)
-            / weeklyWeightChange;
-
-        timeToGoal =
-            Math.ceil(weeks) + " weeks";
-
-    } else if (
-        goal === "gain" &&
-        weightDifference > 0
-    ) {
-
-        const weeks =
-            Math.abs(weightDifference)
-            / weeklyWeightChange;
-
-        timeToGoal =
-            Math.ceil(weeks) + " weeks";
-
-    } else {
-
-        timeToGoal =
-            "Target does not match selected goal";
-    }
-
-
-    // ========================================================
-    // UPDATE DASHBOARD
-    // ========================================================
-
-    document.getElementById("bmiValue")
-        .textContent =
-        bmi.toFixed(1);
-
-
-    document.getElementById("bmiCategory")
-        .textContent =
-        bmiCategory;
-
-
-    document.getElementById("bmrValue")
-        .textContent =
-        Math.round(bmr).toLocaleString();
-
-
-    document.getElementById("maintenanceValue")
-        .textContent =
-        maintenance.toLocaleString();
-
-
-    document.getElementById("calorieTarget")
-        .textContent =
-        calorieTarget.toLocaleString();
-
-
-    document.getElementById("currentWeightResult")
-        .textContent =
-        weight.toFixed(1) + " lbs";
-
-
-    document.getElementById("targetWeightResult")
-        .textContent =
-        targetWeight.toFixed(1) + " lbs";
-
-
-    let differenceText;
-
-
-    if (weightDifference > 0) {
-
-        differenceText =
-            "+" +
-            weightDifference.toFixed(1) +
-            " lbs";
-
-    } else {
-
-        differenceText =
-            weightDifference.toFixed(1) +
-            " lbs";
-    }
-
-
-    document.getElementById("weightDifference")
-        .textContent =
-        differenceText;
-
-
-    // -----------------------------------------
-    // Calorie difference
-    // -----------------------------------------
-
-    let calorieText;
-
-
-    if (calorieDifference > 0) {
-
-        calorieText =
-            "+" +
-            calorieDifference +
-            " calories/day";
-
-    } else if (calorieDifference < 0) {
-
-        calorieText =
-            calorieDifference +
-            " calories/day";
-
-    } else {
-
-        calorieText =
-            "0 calories/day";
-    }
-
-
-    document.getElementById("calorieDifference")
-        .textContent =
-        calorieText;
-
-
-    // -----------------------------------------
-    // Weekly change
-    // -----------------------------------------
-
-    let weeklyText;
-
-
-    if (goal === "lose") {
-
-        weeklyText =
-            "-" +
-            weeklyWeightChange.toFixed(2) +
-            " lbs/week";
-
-    } else if (goal === "gain") {
-
-        weeklyText =
-            "+" +
-            weeklyWeightChange.toFixed(2) +
-            " lbs/week";
-
-    } else {
-
-        weeklyText =
-            "Approximately 0 lbs/week";
-    }
-
-
-    document.getElementById("weeklyChange")
-        .textContent =
-        weeklyText;
-
-
-    document.getElementById("timeToGoal")
-        .textContent =
-        timeToGoal;
-
-
-    // ========================================================
-    // GOAL MESSAGE
-    // ========================================================
-
-    const goalMessage =
-        document.getElementById("goalMessage");
-
-
-    if (goal === "lose") {
-
-        goalMessage.innerHTML = `
-            <strong>Weight Loss Plan</strong><br><br>
-
-            Your estimated maintenance intake is
-            <strong>${maintenance.toLocaleString()}
-            calories/day</strong>.
-
-            A starting target of approximately
-            <strong>${calorieTarget.toLocaleString()}
-            calories/day</strong> creates an estimated
-            500-calorie daily deficit.
-
-            Your estimated rate of weight loss is
-            approximately
-            <strong>${weeklyWeightChange.toFixed(2)}
-            lbs/week</strong>.
-
-            Actual results will vary because metabolism,
-            activity, water weight, and body composition
-            change over time.
-        `;
-
-    } else if (goal === "gain") {
-
-        goalMessage.innerHTML = `
-            <strong>Weight Gain Plan</strong><br><br>
-
-            Your estimated maintenance intake is
-            <strong>${maintenance.toLocaleString()}
-            calories/day</strong>.
-
-            A starting target of approximately
-            <strong>${calorieTarget.toLocaleString()}
-            calories/day</strong> creates an estimated
-            300-calorie daily surplus.
-
-            Your estimated rate of weight gain is
-            approximately
-            <strong>${weeklyWeightChange.toFixed(2)}
-            lbs/week</strong>.
-
-            Combining adequate protein with resistance
-            training can help maximize the proportion
-            of weight gained as muscle.
-        `;
-
-    } else {
-
-        goalMessage.innerHTML = `
-            <strong>Weight Maintenance Plan</strong><br><br>
-
-            Your estimated maintenance intake is
-            approximately
-            <strong>${maintenance.toLocaleString()}
-            calories/day</strong>.
-
-            Eating around this amount should theoretically
-            maintain your current weight, although actual
-            maintenance needs vary between individuals.
-        `;
-    }
-
-
-    // ========================================================
-    // SHOW DASHBOARD
-    // ========================================================
-
-    document
-        .getElementById("dashboard")
-        .classList.remove("hidden");
-
-
-    // Scroll to dashboard
-    document
-        .getElementById("dashboard")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
-}
-
-
-
-// ============================================================
-// STRIPE $5 ONE-TIME PURCHASE
-// ============================================================
-
-premiumButton.addEventListener(
-    "click",
-    startPremiumCheckout
-);
-
-
-async function startPremiumCheckout() {
-
-    const paymentStatus =
-        document.getElementById("paymentStatus");
-
-
-    premiumButton.disabled = true;
-
-    paymentStatus.textContent =
-        "Opening secure Stripe checkout...";
-
-
-    try {
-
-        /*
-            IMPORTANT:
-
-            Your Stripe secret key NEVER goes here.
-
-            This request goes to your backend.
-            Your backend creates the Stripe Checkout Session.
-        */
-
-        const response =
-            await fetch(
-                "http://localhost:3000/create-checkout-session",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    }
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.error ||
-                "Checkout could not be created."
-            );
+    function calculateFitness() {
+        errorMessage.textContent = "";
+
+        const age = Number($("age").value);
+        const sex = $("sex").value;
+        const height = Number($("height").value);
+        const weight = Number($("weight").value);
+        const activity = Number($("activity").value);
+        const workouts = Number($("workouts").value);
+        const goal = $("goal").value;
+
+        const targetInput = $("targetWeight").value.trim();
+        const targetWeight = targetInput === ""
+            ? null
+            : Number(targetInput);
+
+        // Validate inputs.
+        if (!Number.isFinite(age) || age < 13 || age > 100) {
+            showError("Enter an age between 13 and 100.");
+            return;
         }
 
+        if (sex !== "male" && sex !== "female") {
+            showError("Please select your sex.");
+            return;
+        }
 
-        // Send customer to Stripe
-        window.location.href =
-            data.url;
+        if (!Number.isFinite(height) || height < 36 || height > 100) {
+            showError("Enter a height between 36 and 100 inches.");
+            return;
+        }
 
+        if (!Number.isFinite(weight) || weight < 50 || weight > 700) {
+            showError("Enter a weight between 50 and 700 lbs.");
+            return;
+        }
 
-    } catch (error) {
+        if (![1.2, 1.375, 1.55, 1.725, 1.9].includes(activity)) {
+            showError("Please select an activity level.");
+            return;
+        }
 
-        console.error(error);
+        if (!Number.isInteger(workouts) || workouts < 1 || workouts > 7) {
+            showError("Select between 1 and 7 workouts per week.");
+            return;
+        }
 
+        if (!["lose", "maintain", "gain"].includes(goal)) {
+            showError("Please select a fitness goal.");
+            return;
+        }
 
-        paymentStatus.textContent =
-            "Unable to open Stripe checkout. " +
-            "Make sure your backend is running.";
+        // Target weight is optional for maintenance.
+        if (goal !== "maintain" && targetWeight === null) {
+            showError("Enter a target weight for your selected goal.");
+            return;
+        }
 
+        if (
+            targetWeight !== null &&
+            (!Number.isFinite(targetWeight) ||
+             targetWeight < 50 ||
+             targetWeight > 700)
+        ) {
+            showError("Enter a target weight between 50 and 700 lbs.");
+            return;
+        }
 
-        premiumButton.disabled = false;
+        if (
+            goal === "lose" &&
+            targetWeight !== null &&
+            targetWeight >= weight
+        ) {
+            showError("Your weight-loss target must be below your current weight.");
+            return;
+        }
+
+        if (
+            goal === "gain" &&
+            targetWeight !== null &&
+            targetWeight <= weight
+        ) {
+            showError("Your weight-gain target must be above your current weight.");
+            return;
+        }
+
+        // BMI.
+        const bmi = (weight / (height * height)) * 703;
+
+        let bmiCategory;
+
+        if (age < 20) {
+            bmiCategory = "Use age-specific BMI percentiles";
+        } else if (bmi < 18.5) {
+            bmiCategory = "Underweight";
+        } else if (bmi < 25) {
+            bmiCategory = "Normal weight";
+        } else if (bmi < 30) {
+            bmiCategory = "Overweight";
+        } else {
+            bmiCategory = "Obesity range";
+        }
+
+        // BMR: Mifflin-St Jeor estimate.
+        const weightKg = weight * 0.45359237;
+        const heightCm = height * 2.54;
+
+        const bmrBase =
+            10 * weightKg +
+            6.25 * heightCm -
+            5 * age;
+
+        const bmr = sex === "male"
+            ? bmrBase + 5
+            : bmrBase - 161;
+
+        // Estimated maintenance calories.
+        const maintenance = Math.round(bmr * activity);
+
+        // Calorie targets are rough estimates for adults.
+        // Do not automatically prescribe adult deficits
+        // or surpluses to users under 18.
+        let calorieTarget = maintenance;
+
+        if (age >= 18) {
+            if (goal === "lose") {
+                calorieTarget = maintenance - 300;
+            } else if (goal === "gain") {
+                calorieTarget = maintenance + 200;
+            }
+        }
+
+        calorieTarget = Math.round(calorieTarget);
+
+        const calorieDifference = calorieTarget - maintenance;
+
+        // Approximate energy-balance projection.
+        const weeklyChange = calorieDifference * 7 / 3500;
+
+        // For maintenance, use the current weight.
+        const actualTarget = targetWeight === null
+            ? weight
+            : targetWeight;
+
+        const weightDifference = actualTarget - weight;
+
+        // Display the four main statistics.
+        show("bmiValue", bmi.toFixed(1));
+        show("bmiCategory", bmiCategory);
+        show("bmrValue", number(bmr));
+        show("maintenanceValue", number(maintenance));
+        show("calorieTarget", number(calorieTarget));
+
+        // Display detailed results.
+        show("currentWeightResult", weightText(weight));
+
+        show(
+            "targetWeightResult",
+            targetWeight === null
+                ? "No target needed"
+                : weightText(targetWeight)
+        );
+
+        let differenceText = "No change";
+
+        if (weightDifference > 0.05) {
+            differenceText = "+" + weightText(weightDifference);
+        } else if (weightDifference < -0.05) {
+            differenceText = "-" + weightText(Math.abs(weightDifference));
+        }
+
+        show("weightDifference", differenceText);
+
+        let calorieText;
+
+        if (calorieDifference > 0) {
+            calorieText = "+" + number(calorieDifference) + " calories/day";
+        } else if (calorieDifference < 0) {
+            calorieText = "-" + number(Math.abs(calorieDifference)) + " calories/day";
+        } else {
+            calorieText = "0 calories/day";
+        }
+
+        show("calorieDifference", calorieText);
+
+        let weeklyText = "Approximately 0 lbs/week";
+
+        if (weeklyChange > 0.01) {
+            weeklyText = "Gain approximately " +
+                weeklyChange.toFixed(2) + " lbs/week";
+        } else if (weeklyChange < -0.01) {
+            weeklyText = "Lose approximately " +
+                Math.abs(weeklyChange).toFixed(2) + " lbs/week";
+        }
+
+        show("weeklyChange", weeklyText);
+
+        // Estimate time to goal only if the direction matches.
+        let timeToGoal;
+
+        if (goal === "maintain") {
+            timeToGoal = "Maintenance goal";
+        } else if (
+            (goal === "lose" && weeklyChange >= 0) ||
+            (goal === "gain" && weeklyChange <= 0)
+        ) {
+            timeToGoal = "No estimated progress toward goal";
+        } else {
+            const weeks = Math.abs(weightDifference / weeklyChange);
+
+            if (Math.abs(weightDifference) < 0.05) {
+                timeToGoal = "Already at target";
+            } else if (!Number.isFinite(weeks)) {
+                timeToGoal = "Unable to estimate";
+            } else if (weeks < 1) {
+                timeToGoal = "Less than 1 week";
+            } else if (weeks < 4.345) {
+                timeToGoal = Math.ceil(weeks) + " weeks";
+            } else if (weeks / 4.345 < 12) {
+                timeToGoal = (weeks / 4.345).toFixed(1) + " months";
+            } else {
+                timeToGoal = (weeks / 52.14).toFixed(1) + " years";
+            }
+        }
+
+        show("timeToGoal", timeToGoal);
+
+        // Personalized goal analysis.
+        let analysis;
+
+        if (age < 18) {
+            analysis =
+                "Because your body may still be growing, adult calorie " +
+                "equations and weight targets may not be appropriate. " +
+                "Treat these results as estimates and seek personalized " +
+                "nutrition guidance from a qualified healthcare professional.";
+        } else if (goal === "lose") {
+            analysis =
+                "Your goal is weight loss. Estimated maintenance is " +
+                number(maintenance) + " calories/day. Your estimated " +
+                "target is " + number(calorieTarget) +
+                " calories/day. Actual results vary with activity, metabolism, " +
+                "water weight, and other factors.";
+        } else if (goal === "gain") {
+            analysis =
+                "Your goal is weight gain. Estimated maintenance is " +
+                number(maintenance) + " calories/day. Your estimated " +
+                "target is " + number(calorieTarget) +
+                " calories/day. Strength training and adequate nutrition " +
+                "can support muscle development.";
+        } else {
+            analysis =
+                "Your goal is maintaining your weight. Estimated maintenance " +
+                "is " + number(maintenance) +
+                " calories/day. Monitor your weight trend to see whether " +
+                "this estimate matches your actual needs.";
+        }
+
+        analysis += " You selected " + workouts +
+            " workout(s) per week. Activity level is used to estimate " +
+            "energy needs; workout count is not added separately.";
+
+        // Use textContent instead of innerHTML.
+        show("goalMessage", analysis);
+
+        // Show the dashboard.
+        dashboard.classList.remove("hidden");
+
+        dashboard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
-}
+
+    // Connect the button.
+    calculateButton.addEventListener("click", calculateFitness);
+
+    // Premium payment is not configured.
+    if (premiumButton) {
+        premiumButton.addEventListener("click", function () {
+            show(
+                "paymentStatus",
+                "Premium payments are not configured yet."
+            );
+        });
+    }
+
+    dashboard.classList.add("hidden");
+});
